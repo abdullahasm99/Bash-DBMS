@@ -17,7 +17,7 @@ Follow these steps to set up and run the Bash-DBMS project:
 1. Clone the Repository
 bash
 Copy code
-git clone https://github.com/yourusername/bash-dbms.git
+git clone https://github.com/abdullahasm99/Bash-DBMS.git
 2. Navigate to the Project Folder
 bash
 Copy code
