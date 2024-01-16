@@ -1,0 +1,11 @@
+#!/usr/bin/bash
+
+files=$(ls -p | grep -v /)
+
+if [ -z "$files" ]; then
+    echo "
+No Tables Found
+"
+else
+    echo "$files" | sed 's:/$::'
+fi

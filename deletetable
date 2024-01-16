@@ -1,0 +1,96 @@
+#! usr/bin/bash
+
+echo "Available tables:"
+found_tables=false
+
+for table in *; do
+    if [ -f "$table" ]; then
+        echo "- $table"
+        found_tables=true
+    fi
+done
+
+if [ "$found_tables" = false ]; then
+    echo "
+No tables available to delete."
+    echo "Returning to Menu...
+"
+    sleep 1.5
+    break
+fi
+
+read -p "
+Enter the table name (enter 'exit' to quit): " tname
+
+    if [ "$tname" == "exit" ]; then
+        echo "
+Exiting the script...
+"
+	sleep 1.5
+        break
+    fi
+
+if [ -e "$tname" ]; then
+
+  if [ "$(awk 'NR >= 4 { print NR - 3 }' "$tname" | wc -l)" -eq 0 ]; then
+    echo "
+The file $tname has no data. Cannot perform deletion."
+  else
+
+  select option in "
+Delete Specified Row" "Delete All"
+  do
+  case $option in
+  "Delete Specified Row")
+
+  echo "
+Existing rows in $tname:"
+  awk 'NR >= 4 { print "Row " NR - 3 ": " $0 }' "$tname"
+
+
+  max_row_number=$(awk 'END {print NR - 3}' "$tname")
+
+  valid_row=false
+
+  while [ "$valid_row" = false ]; do
+
+    read -p "
+Enter the row number to delete (max:$max_row_number): " row_number
+
+    if [[ $row_number =~ ^[1-9][0-9]*$ && $row_number -le $max_row_number ]]; then
+      valid_row=true
+    else
+      echo "
+Please enter a valid row number (1 to $max_row_number)."
+    fi
+  done
+
+  line_number=$((row_number + 3))
+
+
+  sed -i "${line_number}d" "$tname"
+
+  echo "
+Row $row_number deleted successfully from $tname"
+break
+;;
+"Delete All")
+  read -p "
+Are you sure you want to delete all data (y/n)? " confirm
+  if [[ $confirm == 'y' ]]; then
+    sed -i '4,$d' "$tname"
+    echo "
+All data deleted successfully from $tname"
+  else
+    echo "
+Operation canceled. No data was deleted."
+  fi
+break
+;;
+esac
+done
+fi
+else
+  echo "
+Table $tname does not exist."
+fi

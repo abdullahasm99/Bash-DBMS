@@ -1,0 +1,54 @@
+#!/bin/bash
+
+print_line() {
+    printf "%s\n" "*********************************************************************************************************************************************************************************************"
+}
+
+
+print_centered() {
+    local text="$1"
+    local length=${#text}
+    local spaces=$(( (175 - length) / 2 ))
+    printf "%${spaces}s%s%${spaces}s\n" "" "$text" ""
+}
+
+print_line
+print_centered "BASH DATABASE ENGINE"
+print_line
+echo "---------------------------------------------------------------------------WELCOME TO YOUR DB ENGINE-----------------------------------------------------------------------------------------"
+
+while true; do
+    PS3="Select an option: "
+    options=("Create DB" "List DB" "Drop DB" "Connect DB" "Exit")
+
+    select option in "${options[@]}"; do
+        case $option in
+            "Create DB")
+                source ./project/createdb
+                break
+                ;;
+            "List DB")
+                source ./project/listdb
+                break
+                ;;
+            "Drop DB")
+                source ./project/dropdb
+                break
+                ;;
+            "Connect DB")
+                source ./project/connectdb
+                break
+                ;;
+            "Exit")
+                echo "
+See You Soon!
+"
+		clear
+                exit 0
+                ;;
+            *)
+                echo "Invalid option. Please choose a valid option."
+                ;;
+        esac
+    done
+done

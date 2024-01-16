@@ -1,0 +1,85 @@
+#!/bin/bash
+
+while true; do
+    if [ -z "$(find ./project/* -maxdepth 1 -type d -exec basename {} \; | grep -v '^\.')" ]; then
+        echo "
+No Databases Found.
+"
+        break
+    fi
+
+    echo "
+Available Databases:"
+    find ./project/* -maxdepth 1 -type d -exec basename {} \; | grep -v '^\.'
+
+    read -p "
+Enter the database name that you want to connect to (or 'exit' to quit): " name
+
+    if [ "$name" = "exit" ]; then
+        echo "
+Exiting...
+"
+        break
+    fi
+
+    if [ -d "./project/$name" ]; then
+        echo "
+Connected to database: $name
+"
+        cd "./project/$name"
+
+        while true; do
+            PS3="Select an option on the table: "
+            options=("Create Table" "List Tables" "Drop Table" "Update Table" "Delete From Table" "Insert Into Table" "Select From Table" "Exit")
+
+            select option in "${options[@]}"; do
+                case $option in
+                    "Create Table")
+                        source ../createtable
+			break
+                        ;;
+                    "List Tables")
+                        source ../listtable
+			break
+                        ;;
+                    "Drop Table")
+                        source ../droptable
+			break
+                        ;;
+                    "Update Table")
+                        source ../updatetable
+			break
+                        ;;
+                    "Delete From Table")
+                        source ../deletetable
+			break
+                        ;;
+                    "Insert Into Table")
+                        source ../inserttable
+			break
+                        ;;
+                    "Select From Table")
+                        source ../selecttable
+			break
+                        ;;
+                    "Exit")
+                        echo "
+Returning to the main menu...
+"
+                        cd ~
+                        source ./project/maiin
+                        break 2
+                        ;;
+                    *)
+                        echo "
+Enter a valid option
+"
+break
+                        ;;
+                esac
+            done
+        done
+    else
+        echo "Error: Database $name not found."
+    fi
+done

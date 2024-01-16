@@ -1,0 +1,144 @@
+#! /usr/bin/bash
+
+while true; do
+  read -p "Enter the table name (enter 'exit' to quit): " tname
+
+  if [ "$tname" == "exit" ]; then
+    echo "
+Exiting the script...
+"
+    sleep 1.5
+    break
+  elif [ -e "$tname" ]; then
+    echo "
+There's a table with the same name. Please enter another name.
+"
+  else
+
+    case $tname in
+      ' ' | *' ' | *'  ' )
+        echo "
+Table names cannot start or end with a space, and cannot contain consecutive spaces.
+"
+        ;;
+      [a-zA-Z][a-zA-Z0-9]*)
+        if [[ $tname =~ [^a-zA-Z0-9] ]]; then
+          echo "
+Table names cannot contain special characters.
+"
+        else
+	while true; do
+          read -p "
+Enter the number of columns: " num_columns
+
+
+          if [[ ! $num_columns =~ ^[1-9][0-9]*$ ]]; then
+            echo "
+Please enter a valid number of columns (greater than 0).
+"
+           continue
+	else
+	    break
+          fi
+	done
+
+
+          names=""
+          types=""
+          keys=""
+          primary_key_selected=false
+
+          for ((i=1; i<=$num_columns; i++)); do
+            while true; do
+              read -p "Enter column $i name: " col_name
+
+              if [[ "$names" == *"$col_name"* ]]; then
+                echo "
+Column name must be unique. Please enter a different name.
+"
+                continue
+              else
+                break
+              fi
+            done
+
+            while true; do
+              read -p "Is $col_name a primary key? (y/n): " is_primary_key
+
+              if [[ "$is_primary_key" != "y" && "$is_primary_key" != "n" ]]; then
+                echo "
+Please enter 'y' or 'n' for the primary key.
+"
+                continue
+              else
+                break
+              fi
+            done
+
+            if [ "$is_primary_key" == "y" ]; then
+              if [ "$primary_key_selected" == true ]; then
+                echo "
+Only one primary key allowed.
+"
+                ((i--))
+                continue
+              else
+                primary_key_selected=true
+              fi
+            fi
+
+            while true; do
+              read -p "Enter the type for $col_name (str/int): " col_type
+
+              if [[ "$col_type" != "str" && "$col_type" != "int" ]]; then
+                echo "
+Please enter 'str' or 'int' for the column type.
+"
+                continue
+              else
+                break
+              fi
+            done
+
+
+            names+="$col_name"
+            types+="$col_type"
+            keys+="$is_primary_key"
+
+            if [ $i -lt $num_columns ]; then
+              names+="|"
+              types+="|"
+              keys+="|"
+            fi
+          done
+
+          if [ "$primary_key_selected" == false ]; then
+            echo "
+At least one primary key is required. Please define a column as a primary key.
+"
+            continue
+          fi
+
+          echo "$names" >> "$tname"
+          echo "$keys" >> "$tname"
+          echo "$types" >> "$tname"
+
+          echo "
+Table $tname created successfully
+"
+          break
+        fi
+        ;;
+      [0-9]*)
+        echo "
+Table names cannot start with a number or be entirely composed of numbers.
+"
+        ;;
+      *)
+        echo "
+Table names cannot start or be entirely composed of special characters.
+"
+        ;;
+    esac
+  fi
+done

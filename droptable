@@ -1,0 +1,62 @@
+#!/usr/bin/bash
+
+while true
+do
+  echo "
+Available tables:"
+  ls -A   
+  
+  if [ -z "$(ls -A)" ]; then
+    echo "
+No tables available to drop."
+ echo "Returning to Menu...
+"
+sleep 1.5
+    break
+  fi
+
+  read -p "
+Enter the table name you want to drop (Delete Permanently) or type 'exit' to return to the menu: " tname
+
+
+  if [ "$tname" == "exit" ]; then
+    break
+  fi
+
+  if [ -e "$tname" ]; then
+    case $tname in
+      ' ' | *' ' | *'  ' )
+        echo "
+Table names cannot start or end with a space, and cannot contain consecutive spaces.
+"
+        ;;
+      [a-zA-Z][a-zA-Z0-9]*)
+        if [[ $tname =~ [^a-zA-Z0-9] ]]; then
+          echo "
+Table names cannot contain special characters.
+"
+        else
+          rm "$tname"
+          echo "
+Table $tname deleted successfully
+"
+          break
+        fi
+        ;;
+      [0-9]*)
+        echo "
+Table names cannot start with a number or be entirely composed of numbers.
+"
+        ;;
+      *)
+        echo "
+Table names cannot start or be entirely composed of special characters.
+"
+        ;;
+    esac
+  else
+    echo "
+Table $tname not found. Please enter a valid table name or type 'exit' to return to the menu.
+"
+  fi
+done

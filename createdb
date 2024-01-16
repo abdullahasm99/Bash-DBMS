@@ -1,0 +1,47 @@
+#!/usr/bin/bash
+
+while true
+do
+  read -p "
+Please enter the database name (or 'exit' to quit): " name
+
+if [ "$name" = "exit" ]; then
+        echo "
+Exiting...
+"
+        break
+    fi
+
+  if [ -e "./project/$name" ]; then
+    echo "
+There's a database with the same name. Please enter another name."
+  else
+
+    case $name in
+      ' ' | *' ' | *'  ' )
+        echo "
+Database names cannot start or end with a space, and cannot contain consecutive spaces."
+        ;;
+      [a-zA-Z][a-zA-Z0-9]*)
+        if [[ $name =~ [^a-zA-Z0-9] ]]; then
+          echo "
+Database names cannot contain special characters."
+        else
+          echo "
+DB $name created successfully
+"
+	mkdir "./project/$name"
+          break
+        fi
+        ;;
+      [0-9]*)
+        echo "
+Database names cannot start with a number or be entirely composed of numbers."
+        ;;
+      *)
+        echo "
+Database names cannot start or be entirely composed of special characters."
+        ;;
+    esac
+  fi
+done

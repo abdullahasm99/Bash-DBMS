@@ -1,0 +1,153 @@
+#! /usr/bin/bash
+
+while true; do
+
+echo "Available tables:"
+found_tables=false
+
+for table in *; do
+    if [ -f "$table" ]; then
+        echo "- $table"
+        found_tables=true
+    fi
+done
+
+if [ "$found_tables" = false ]; then
+    echo "
+No tables available to update."
+    echo "Returning to Menu...
+"
+    sleep 1.5
+    break
+fi
+
+    read -p "Enter the table name to update records (enter 'exit' to quit): " update_table_name
+
+    if [ "$update_table_name" == "exit" ]; then
+        echo "
+Exiting the script...
+"
+	sleep 1.5
+        break
+    fi
+
+    if [ ! -e "$update_table_name" ]; then
+        echo "
+Table $update_table_name does not exist. Please enter a valid table name."
+        continue
+    fi
+
+    IFS='|' read -r -a column_names < <(head -n 1 "$update_table_name")
+    IFS='|' read -r -a column_keys < <(head -n 2 "$update_table_name" | tail -n 1)
+    IFS='|' read -r -a column_types < <(head -n 3 "$update_table_name" | tail -n 1)
+
+
+    primary_key_index=-1
+    for ((i=0; i<${#column_keys[@]}; i++)); do
+        if [ "${column_keys[i]}" == "y" ]; then
+            primary_key_index=$i
+            break
+        fi
+    done
+
+
+    primary_key_values=()
+    while read -r line; do
+        IFS='|' read -ra values <<< "$line"
+        primary_key_values+=("${values[$primary_key_index]}")
+    done < <(tail -n +4 "$update_table_name")
+
+
+    if [ ${#primary_key_values[@]} -eq 0 ]; then
+        echo "
+File $update_table_name is empty."
+        continue
+    fi
+
+
+    while true; do
+        read -p "
+Enter the primary key value to update a record: " update_primary_key_value
+
+
+        if [[ ! " ${primary_key_values[@]} " =~ " $update_primary_key_value " ]]; then
+            echo "
+Error: Primary key value '$update_primary_key_value' not found. Please enter a valid primary key value."
+        else
+            break
+        fi
+    done
+
+
+    update_record_index=-1
+while IFS='|' read -ra values; do
+    ((update_record_index++))
+    if [ "${values[$primary_key_index]}" == "$update_primary_key_value" ]; then
+        break
+    fi
+done < <(tail -n +4 "$update_table_name")
+
+
+    while true; do
+        echo "
+Choose a column to update:"
+        for ((i=0; i<${#column_names[@]}; i++)); do
+            echo "$((i+1)). ${column_names[i]} (${column_types[i]})"
+        done
+
+        read -p "
+Enter the number of the column to update: " update_column_number
+
+        if [[ ! "$update_column_number" =~ ^[1-9][0-9]*$ || $update_column_number -gt ${#column_names[@]} ]]; then
+            echo "
+Invalid input. Please enter a valid column number."
+        else
+            break
+        fi
+    done
+
+
+    while true; do
+        read -p "
+Enter updated value for ${column_names[update_column_number-1]} (${column_types[update_column_number-1]}): " updated_value
+
+                if [[ ! "${primary_key_values[@]}" =~ $updated_value ]]; then
+                    break
+                else
+                    echo "
+Error: Primary key value '$updated_value' already exists. Please enter a unique primary key value."
+		continue
+                fi
+	
+        case "${column_types[update_column_number-1]}" in
+            "int")
+                if [[ "$updated_value" =~ ^[0-9]+$ ]]; then
+                    break
+                else
+                    echo "
+Invalid input. Please enter an integer."
+                fi
+                ;;
+            "str")
+                if [[ "$updated_value" =~ ^[a-zA-Z]+$ ]]; then
+                    break
+                else
+                    echo "
+Invalid input. Please enter a string without special characters."
+                fi
+                ;;
+            *)
+                echo "
+Unknown column type: ${column_types[update_column_number-1]}"
+
+                ;;
+        esac
+    done
+
+awk -v update_record_index="$update_record_index" -v update_column_number="$update_column_number" -v updated_value="$updated_value" 'NR == update_record_index + 4 { split(updated_value, new_values, "|"); $update_column_number = updated_value } 1' FS="|" OFS="|" "$update_table_name" > temp_file && mv temp_file "$update_table_name"
+
+    echo "
+Record updated successfully in table $update_table_name
+"
+    break
+done

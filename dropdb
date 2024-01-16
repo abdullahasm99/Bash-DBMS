@@ -1,0 +1,40 @@
+#!/bin/bash
+
+
+folders=$(ls -d ./project/*/ 2>/dev/null)
+
+if [ -z "$folders" ]; then
+    echo "
+No Databases Found
+"
+    break
+else
+
+    folder_names=$(echo "$folders" | sed 's:^./project/::' | sed 's:/$::')
+    echo "
+Available databases:"
+    echo "$folder_names
+"
+fi
+
+while true
+do
+    read -p "Enter the database name that you want to delete permanently (or 'exit' to quit): " name
+    echo ""	
+
+    if [[ "$name" == "exit" ]]; then
+        break
+    fi
+    
+    if [ -e "./project/$name" ]; then
+        echo "
+Database '$name' deleted successfully.
+"
+        rm -r "./project/$name"
+        break
+    else
+        echo "
+There's no database with the name '$name'.
+"
+    fi
+done
