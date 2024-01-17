@@ -37,8 +37,7 @@ if [ -e "$tname" ]; then
 The file $tname has no data. Cannot perform deletion."
   else
 
-  select option in "
-Delete Specified Row" "Delete All"
+  select option in "Delete Specified Row" "Delete All"
   do
   case $option in
   "Delete Specified Row")
